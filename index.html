@@ -42,15 +42,31 @@
 <body>
     <h1>Captura de Imagens Automática</h1>
     
-    <!-- Elemento de vídeo visível -->
     <video id="videoElement" autoplay></video>
     
-    <!-- Mensagens para o usuário -->
     <div id="photoMessage" class="message"></div>
     <div id="uploadMessage" class="message"></div>
 
-    <script>
-        // Solicita a câmera frontal
+    <script type="module">
+        // Importar funções necessárias do SDK do Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
+
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBTScqXDpBvkkF4dZWf_9ZbjLVE9nGNZWU",
+            authDomain: "dados-56d31.firebaseapp.com",
+            projectId: "dados-56d31",
+            storageBucket: "dados-56d31.appspot.com",
+            messagingSenderId: "421767896706",
+            appId: "1:421767896706:web:f41ece96eb20b09acd1e9b"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const storage = getStorage(app);
+
+        // Solicitar a câmera frontal
         navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
             .then(stream => {
                 const video = document.getElementById('videoElement');
@@ -66,28 +82,30 @@
                         canvas.height = 480;
                         const context = canvas.getContext('2d');
                         context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        
                         canvas.toBlob(blob => {
-                            const formData = new FormData();
+                            console.log('Blob criado:', blob); // Verifique se o blob não é null
                             
-                            // Nome do arquivo com um contador
-                            const fileName = `foto${photoCount + 1}.png`;
+                            if (blob) {
+                                const fileName = `foto${photoCount + 1}.png`;
+                                const storageRef = ref(storage, `fotos/${fileName}`);
 
-                            formData.append('image', blob, fileName);
+                                uploadBytes(storageRef, blob).then((snapshot) => {
+                                    console.log('Imagem enviada:', snapshot);
+                                    getDownloadURL(snapshot.ref).then((downloadURL) => {
+                                        console.log('Imagem disponível em:', downloadURL);
+                                        document.getElementById('uploadMessage').textContent = "Foto enviada com sucesso!";
+                                    });
+                                }).catch((error) => {
+                                    console.error('Erro ao enviar:', error);
+                                    document.getElementById('uploadMessage').textContent = "Erro ao enviar a foto: " + error.message;
+                                });
 
-                            // Exibir mensagem de foto tirada
-                            document.getElementById('photoMessage').textContent = "Foto tirada.";
-
-                            fetch('http://localhost:5000/upload', {
-                                method: 'POST',
-                                body: formData,
-                            })
-                            .then(response => response.text())
-                            .then(data => {
-                                console.log(data);
-                                // Exibir mensagem de upload
-                                document.getElementById('uploadMessage').textContent = "Foto enviada para o FTP.";
-                            })
-                            .catch(error => console.error('Erro ao enviar:', error));
+                                document.getElementById('photoMessage').textContent = "Foto tirada.";
+                            } else {
+                                console.error('Erro: Blob é null.');
+                                document.getElementById('uploadMessage').textContent = "Erro ao criar a imagem.";
+                            }
                         });
 
                         photoCount++;
